@@ -18,7 +18,7 @@
     ]
   },
   "identifier": "io.joplin.smart-search",
-  "productName": "Joplin Smart Search",
+  "productName": "joplin-smart-search",
   "version": "0.1.0",
   "app": {
     "windows": [
