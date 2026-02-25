@@ -96,7 +96,11 @@ fn install_desktop_entry() {
     };
 
     let desktop_dir = format!("{}/.local/share/applications", home);
+    // Filename must match the Wayland app-id Tauri broadcasts: "joplin-smart-search"
+    // (tao derives this from the binary name, not the bundle identifier).
     let desktop_file = format!("{}/joplin-smart-search.desktop", desktop_dir);
+    // Remove any stale file written under the old (wrong) name.
+    let _ = std::fs::remove_file(format!("{}/io.joplin.smart-search.desktop", desktop_dir));
     let icon_dir = format!("{}/.local/share/icons/hicolor/128x128/apps", home);
     let hicolor_dir = format!("{}/.local/share/icons/hicolor", home);
 
@@ -124,11 +128,14 @@ fn install_desktop_entry() {
         .unwrap_or(true); // missing → write it
 
     if needs_update {
+        // Use the absolute icon path so KDE/GNOME don't need a cache lookup.
+        // Icon theme name lookup ("joplin-smart-search") requires kbuildsycoca/GTK
+        // cache to be current; absolute path works regardless of cache state.
         let desktop_contents = format!(
             "[Desktop Entry]\n\
              Name=Joplin Smart Search\n\
              Exec={exe_str}\n\
-             Icon=joplin-smart-search\n\
+             Icon={icon_path}\n\
              Type=Application\n\
              Categories=Utility;\n\
              StartupWMClass=joplin-smart-search\n"
@@ -141,6 +148,20 @@ fn install_desktop_entry() {
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
             .spawn();
+    }
+
+    // Rebuild KDE's sycoca cache so it picks up the new icon (KDE ignores
+    // gtk-update-icon-cache). Try KDE 6 first, fall back to KDE 5.
+    for cmd in &["kbuildsycoca6", "kbuildsycoca5"] {
+        if std::process::Command::new(cmd)
+            .arg("--noincremental")
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .is_ok()
+        {
+            break;
+        }
     }
 }
 
