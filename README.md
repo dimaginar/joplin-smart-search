@@ -28,7 +28,7 @@ This project was developed with the assistance of AI coding tools. The full sour
 |---|---|
 | Linux (Ubuntu, Fedora, Mint, …) | `joplin-smart-search_x.x.x_amd64.AppImage` |
 | Linux (Arch, CachyOS, Manjaro, …) | `joplin-smart-search_x86_64-linux.tar.gz` |
-| Windows | `joplin-smart-search_x86_64-windows.zip` |
+| Windows | `joplin-smart-search_x.x.x_x64-setup.exe` |
 
 3. Run the app — see platform instructions below
 4. On first launch the embedding model downloads (~33 MB). After that the app works fully offline.
@@ -66,7 +66,7 @@ The app automatically registers itself in your application launcher and sets the
 
 ### Windows
 
-Extract `joplin-smart-search_x86_64-windows.zip` and run `joplin-smart-search.exe`. No installation required — works on Windows 10 and 11.
+Run `joplin-smart-search_x.x.x_x64-setup.exe` — it installs the app and creates a Start Menu entry. Works on Windows 10 and 11.
 
 **Windows SmartScreen warning?** Click **More info** → **Run anyway**. The warning appears because the app is not signed with a commercial code signing certificate.
 
