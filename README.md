@@ -26,7 +26,7 @@ This project was developed with the assistance of AI coding tools. The full sour
 
 | Platform | File |
 |---|---|
-| Linux (Ubuntu, Fedora, Mint, …) | `Joplin Smart Search_x.x.x_amd64.AppImage` |
+| Linux (Ubuntu, Fedora, Mint, …) | `joplin-smart-search_x.x.x_amd64.AppImage` |
 | Linux (Arch, CachyOS, Manjaro, …) | `joplin-smart-search_x86_64-linux.tar.gz` |
 | Windows | `Joplin Smart Search_x.x.x_x64-setup.exe` |
 
@@ -38,8 +38,8 @@ This project was developed with the assistance of AI coding tools. The full sour
 ### Linux — AppImage
 
 ```bash
-chmod +x "Joplin Smart Search_x.x.x_amd64.AppImage"
-./"Joplin Smart Search_x.x.x_amd64.AppImage"
+chmod +x "joplin-smart-search_x.x.x_amd64.AppImage"
+./"joplin-smart-search_x.x.x_amd64.AppImage"
 ```
 
 Double-clicking in your file manager also works on most distros.
@@ -81,7 +81,7 @@ sudo apt-get install libfuse2
 Or run without FUSE:
 
 ```bash
-APPIMAGE_EXTRACT_AND_RUN=1 ./"Joplin Smart Search_x.x.x_amd64.AppImage"
+APPIMAGE_EXTRACT_AND_RUN=1 ./"joplin-smart-search_x.x.x_amd64.AppImage"
 ```
 
 ### AppImage: "Could not create default EGL display" (Arch / CachyOS)
