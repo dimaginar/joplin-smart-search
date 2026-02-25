@@ -539,6 +539,15 @@ pub async fn open_in_joplin(note_id: String) -> Result<(), String> {
     open::that_detached(url).map_err(|e| e.to_string())
 }
 
+/// Open an external http/https URL in the system default browser.
+#[tauri::command]
+pub async fn open_external_url(url: String) -> Result<(), String> {
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        return Err("only_http_allowed".to_string());
+    }
+    open::that_detached(url).map_err(|e| e.to_string())
+}
+
 /// Path where the HNSW index binary is persisted.
 pub fn index_file_path(app: &tauri::AppHandle) -> std::path::PathBuf {
     app.path()

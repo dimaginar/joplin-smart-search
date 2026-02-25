@@ -96,6 +96,7 @@ pub fn run() {
             commands::get_note,
             commands::trigger_reindex,
             commands::open_in_joplin,
+            commands::open_external_url,
         ])
         .setup(|app| {
             // Set the window icon explicitly so the taskbar shows our icon on Linux.
