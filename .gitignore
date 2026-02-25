@@ -1,0 +1,22 @@
+# Rust build output
+/src-tauri/target/
+
+# Frontend build output
+/dist/
+
+# Node dependencies
+/node_modules/
+
+# fastembed model cache (downloaded at runtime, not committed)
+/.fastembed_cache/
+/src-tauri/.fastembed_cache/
+
+# Claude Code local settings (machine-specific hook paths, local state)
+/.claude/
+
+# Claude Flow / swarm working state (not project source)
+/.claude-flow/
+/.swarm/
+
+# Tauri WiX / NSIS build temporaries
+/src-tauri/WixTools/

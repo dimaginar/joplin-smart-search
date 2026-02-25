@@ -1,0 +1,9 @@
+{
+  "identifier": "default",
+  "description": "Default capability for Joplin Smart Search",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "dialog:allow-open"
+  ]
+}

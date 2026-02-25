@@ -1,0 +1,100 @@
+name: Release
+
+# Trigger: push a tag like v0.1.0
+# You can also trigger manually with workflow_dispatch for testing.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+# Only one release job runs at a time (avoid race on the same tag).
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ── Linux AppImage ──────────────────────────────────────────────
+          - platform: ubuntu-22.04
+            args: --target x86_64-unknown-linux-gnu --bundles appimage
+            rust_target: x86_64-unknown-linux-gnu
+
+          # ── Windows NSIS installer ──────────────────────────────────────
+          - platform: windows-latest
+            args: --target x86_64-pc-windows-msvc --bundles nsis
+            rust_target: x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Node.js (for Vite / tsc frontend build) ───────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      # ── Rust toolchain ─────────────────────────────────────────────────
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      # Cache Cargo registry + compiled deps across runs.
+      # The cache key includes the OS and Cargo.lock hash so it
+      # invalidates correctly when dependencies change.
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "src-tauri -> target"
+          key: ${{ matrix.platform }}-cargo
+
+      # ── Linux system libraries (WebKit2GTK, AppImage tools) ───────────
+      # Not needed on Windows runner.
+      - name: Install Linux build dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            file \
+            libssl-dev \
+            pkg-config \
+            libxdo-dev \
+            libayatana-appindicator3-dev
+
+      # ── Build via tauri-action ─────────────────────────────────────────
+      # tauri-apps/tauri-action@v0 handles:
+      #   1. Running beforeBuildCommand (npm run build → tsc + vite)
+      #   2. cargo build --release --target <target>
+      #   3. tauri bundle (calls makensis.exe on Windows, appimagetool on Linux)
+      #   4. Uploading artifacts to the GitHub Release (when triggered by a tag)
+      - name: Build and bundle Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Linux: avoid FUSE2 requirement when appimagetool runs AppImages
+          # internally during the bundle step on the CI runner.
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Joplin Smart Search ${{ github.ref_name }}"
+          releaseBody: "See the assets below for the installer and AppImage."
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
