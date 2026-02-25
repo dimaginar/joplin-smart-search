@@ -42,9 +42,11 @@ jobs:
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
-          # Remove the broken pre-installed libappindicator3-dev from the runner image.
-          # It conflicts with libayatana-appindicator3-dev which webkit2gtk pulls in.
-          sudo apt-get remove -y libappindicator3-dev || true
+          # The runner image has a broken libappindicator3-dev (held state).
+          # webkit2gtk pulls in libayatana-appindicator3-dev which conflicts with it.
+          # Use dpkg --force to bypass apt's dependency resolver and remove it.
+          sudo dpkg --purge --force-all libappindicator3-dev 2>/dev/null || true
+          sudo dpkg --purge --force-all libappindicator3-1 2>/dev/null || true
           sudo apt-get install -y \
             libwebkit2gtk-4.1-dev \
             librsvg2-dev \
