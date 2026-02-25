@@ -78,9 +78,10 @@ impl Default for AppState {
 /// Type alias used in Tauri command signatures and background tasks.
 pub type AppMutex = Mutex<AppState>;
 
-/// Installs a `.desktop` entry and a 128x128 icon for this app on first run.
-/// This is best-effort: all errors are silently ignored and the app never crashes.
-/// Idempotent: if the `.desktop` file already exists, the function returns immediately.
+/// Installs a `.desktop` entry and a 128x128 icon for this app.
+/// Runs on every launch (best-effort, all errors silently ignored):
+///   - Always writes the icon + refreshes the GTK icon cache (fixes missing icons).
+///   - Rewrites the .desktop entry if the binary path has changed (handles moves/updates).
 #[cfg(target_os = "linux")]
 fn install_desktop_entry() {
     // Resolve the real path of the running binary.
@@ -96,45 +97,51 @@ fn install_desktop_entry() {
 
     let desktop_dir = format!("{}/.local/share/applications", home);
     let desktop_file = format!("{}/joplin-smart-search.desktop", desktop_dir);
-
-    // Idempotent: already installed — nothing to do.
-    if std::path::Path::new(&desktop_file).exists() {
-        return;
-    }
-
-    let icon_dir = format!(
-        "{}/.local/share/icons/hicolor/128x128/apps",
-        home
-    );
+    let icon_dir = format!("{}/.local/share/icons/hicolor/128x128/apps", home);
+    let hicolor_dir = format!("{}/.local/share/icons/hicolor", home);
 
     // Create required directories.
     let _ = std::fs::create_dir_all(&desktop_dir);
     let _ = std::fs::create_dir_all(&icon_dir);
 
-    // Write the bundled 128x128 icon.
+    // Always write the icon — cheap and ensures the icon cache can be refreshed.
     let icon_bytes = include_bytes!("../icons/128x128.png");
     let icon_path = format!("{}/joplin-smart-search.png", icon_dir);
     let _ = std::fs::write(&icon_path, icon_bytes);
 
-    // Write the .desktop file.
-    let exe_str = exe_path.to_string_lossy();
-    let desktop_contents = format!(
-        "[Desktop Entry]\n\
-         Name=Joplin Smart Search\n\
-         Exec={exe_str}\n\
-         Icon=joplin-smart-search\n\
-         Type=Application\n\
-         Categories=Utility;\n\
-         StartupWMClass=joplin-smart-search\n"
-    );
-    let _ = std::fs::write(&desktop_file, desktop_contents);
-
-    // Refresh the desktop database — silently ignore if the tool is absent.
-    let _ = std::process::Command::new("update-desktop-database")
-        .arg(&desktop_dir)
+    // Always refresh the GTK icon cache so the DE can find our icon.
+    // Without this, icons added to hicolor/ are invisible until the cache is rebuilt.
+    let _ = std::process::Command::new("gtk-update-icon-cache")
+        .args(["-f", "-t", &hicolor_dir])
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
         .spawn();
+
+    // Write or update the .desktop entry if the binary path has changed.
+    let exe_str = exe_path.to_string_lossy();
+    let needs_update = std::fs::read_to_string(&desktop_file)
+        .map(|c| !c.contains(exe_str.as_ref()))
+        .unwrap_or(true); // missing → write it
+
+    if needs_update {
+        let desktop_contents = format!(
+            "[Desktop Entry]\n\
+             Name=Joplin Smart Search\n\
+             Exec={exe_str}\n\
+             Icon=joplin-smart-search\n\
+             Type=Application\n\
+             Categories=Utility;\n\
+             StartupWMClass=joplin-smart-search\n"
+        );
+        let _ = std::fs::write(&desktop_file, desktop_contents);
+
+        // Refresh the desktop database.
+        let _ = std::process::Command::new("update-desktop-database")
+            .arg(&desktop_dir)
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn();
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
