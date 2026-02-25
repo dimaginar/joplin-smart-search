@@ -61,7 +61,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Joplin Smart Search ${{ github.ref_name }}"
-          releaseBody: "See the assets below to download the AppImage."
+          releaseBody: "**Linux (Ubuntu, Fedora, etc.):** download the `.AppImage`.\n**Linux (Arch, CachyOS, Manjaro):** download `joplin-smart-search_x86_64-linux.tar.gz` — uses your system webkit2gtk.\n**Windows:** download the `.exe` installer."
           releaseDraft: true
           prerelease: false
           args: --target x86_64-unknown-linux-gnu --bundles appimage
@@ -81,4 +81,27 @@ jobs:
         with:
           name: joplin-smart-search-appimage
           path: src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
+          retention-days: 7
+
+      # Raw binary for Arch/CachyOS users: uses system webkit2gtk, no FUSE or EGL bundling issues.
+      - name: Package raw binary as tar.gz
+        run: |
+          cd src-tauri/target/x86_64-unknown-linux-gnu/release
+          tar -czf joplin-smart-search_x86_64-linux.tar.gz joplin-smart-search
+
+      - name: Upload tar.gz to release (tag push)
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} \
+            src-tauri/target/x86_64-unknown-linux-gnu/release/joplin-smart-search_x86_64-linux.tar.gz \
+            --clobber
+
+      - name: Upload tar.gz as artifact (manual run)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: joplin-smart-search-linux-binary
+          path: src-tauri/target/x86_64-unknown-linux-gnu/release/joplin-smart-search_x86_64-linux.tar.gz
           retention-days: 7
