@@ -120,6 +120,12 @@ update-desktop-database ~/.local/share/applications
 
 Replace the `Exec=` path with the actual location of the binary.
 
+## ☕ Support Development
+
+If Joplin Smart Search is useful to you, consider supporting its development. Donations help fund a code signing certificate to remove the Windows SmartScreen warning and make the app more trusted for everyone.
+
+[Donate with PayPal](https://www.paypal.com/donate/?business=Q4JJUB58QT7SN) · [Donate with iDEAL](https://betaalverzoek.rabobank.nl/betaalverzoek/?id=MiDjVyNBSN-Qy288Zb0sJg)
+
 ## 🛠️ Tech Stack
 
 - [Tauri 2](https://v2.tauri.app/) + Rust — backend, file watching, SQLite access
