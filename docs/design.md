@@ -154,7 +154,7 @@ Holds search query, results list, selected note, and index status polled from th
 |---|---|---|
 | AppImage | Linux (Ubuntu, Fedora, …) | Self-contained, bundles WebKit |
 | tar.gz (raw binary) | Linux (Arch, CachyOS, …) | Uses system webkit2gtk-4.1 |
-| zip (raw .exe) | Windows | Uses system WebView2 (built into Win 10/11) |
+| NSIS installer (.exe) | Windows | Uses system WebView2 (built into Win 10/11) |
 
 ### Linux desktop integration
 On first run the app auto-installs:
@@ -163,8 +163,11 @@ On first run the app auto-installs:
 
 This gives the correct taskbar icon and app launcher entry without any user action. Subsequent launches skip this (idempotent check).
 
+### Windows cross-compile
+NSIS installer built locally from Linux — see [building-windows.md](building-windows.md). Upload the resulting `.exe` to the draft GitHub Release manually before publishing.
+
 ### CI/CD
-GitHub Actions (`windows-latest` + `ubuntu-24.04`) builds all artifacts on tag push (attached to a draft GitHub Release) or manual dispatch (uploaded as private workflow artifacts, 7-day retention).
+GitHub Actions (`ubuntu-24.04`) builds Linux artifacts on tag push (attached to a draft GitHub Release) or manual dispatch (uploaded as private workflow artifacts, 7-day retention). Windows is built locally.
 
 ---
 
