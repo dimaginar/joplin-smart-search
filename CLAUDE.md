@@ -8,6 +8,14 @@
 ## Claude Flow Integration
 
 All context, findings, and agent results **must** go through Claude Flow memory.
+No MEMORY.md file — Claude Flow SQLite is the single source of truth.
+
+**At session start**, retrieve key context:
+```
+mcp__claude-flow__memory_retrieve  key=project:context   namespace=project
+mcp__claude-flow__memory_retrieve  key=project:file-paths namespace=project
+mcp__claude-flow__memory_retrieve  key=project:distribution namespace=project
+```
 
 | Action | Tool |
 |--------|------|
