@@ -78,6 +78,65 @@ impl Default for AppState {
 /// Type alias used in Tauri command signatures and background tasks.
 pub type AppMutex = Mutex<AppState>;
 
+/// Installs a `.desktop` entry and a 128x128 icon for this app on first run.
+/// This is best-effort: all errors are silently ignored and the app never crashes.
+/// Idempotent: if the `.desktop` file already exists, the function returns immediately.
+#[cfg(target_os = "linux")]
+fn install_desktop_entry() {
+    // Resolve the real path of the running binary.
+    let exe_path = match std::fs::read_link("/proc/self/exe") {
+        Ok(p) => p,
+        Err(_) => return,
+    };
+
+    let home = match std::env::var("HOME") {
+        Ok(h) => h,
+        Err(_) => return,
+    };
+
+    let desktop_dir = format!("{}/.local/share/applications", home);
+    let desktop_file = format!("{}/joplin-smart-search.desktop", desktop_dir);
+
+    // Idempotent: already installed — nothing to do.
+    if std::path::Path::new(&desktop_file).exists() {
+        return;
+    }
+
+    let icon_dir = format!(
+        "{}/.local/share/icons/hicolor/128x128/apps",
+        home
+    );
+
+    // Create required directories.
+    let _ = std::fs::create_dir_all(&desktop_dir);
+    let _ = std::fs::create_dir_all(&icon_dir);
+
+    // Write the bundled 128x128 icon.
+    let icon_bytes = include_bytes!("../icons/128x128.png");
+    let icon_path = format!("{}/joplin-smart-search.png", icon_dir);
+    let _ = std::fs::write(&icon_path, icon_bytes);
+
+    // Write the .desktop file.
+    let exe_str = exe_path.to_string_lossy();
+    let desktop_contents = format!(
+        "[Desktop Entry]\n\
+         Name=Joplin Smart Search\n\
+         Exec={exe_str}\n\
+         Icon=joplin-smart-search\n\
+         Type=Application\n\
+         Categories=Utility;\n\
+         StartupWMClass=joplin-smart-search\n"
+    );
+    let _ = std::fs::write(&desktop_file, desktop_contents);
+
+    // Refresh the desktop database — silently ignore if the tool is absent.
+    let _ = std::process::Command::new("update-desktop-database")
+        .arg(&desktop_dir)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // Only log WARN and above in production to avoid leaking note content
@@ -105,6 +164,9 @@ pub fn run() {
                     let _ = window.set_icon(icon.clone()).ok();
                 }
             }
+            #[cfg(target_os = "linux")]
+            install_desktop_entry();
+
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
                 commands::startup_init(handle).await;
