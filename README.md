@@ -7,7 +7,7 @@ Built with Tauri 2 + Rust. Fully local and offline after first run. No cloud, no
 ## 🔍 How It Works
 
 - Notes are embedded using [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) — a small, fast ONNX model (~33 MB, downloaded once on first run)
-- Embeddings are stored in a local HNSW vector index on your machine
+- Embeddings are stored in a local [HNSW vector index](https://github.com/ruvnet/ruvector) on your machine — the core of the search engine
 - New and edited notes are picked up automatically within ~15 seconds
 - Click a result to open the note directly in Joplin
 
@@ -28,7 +28,7 @@ This project was developed with the assistance of AI coding tools. The full sour
 |---|---|
 | Linux (Ubuntu, Fedora, Mint, …) | `joplin-smart-search_x.x.x_amd64.AppImage` |
 | Linux (Arch, CachyOS, Manjaro, …) | `joplin-smart-search_x86_64-linux.tar.gz` |
-| Windows | `Joplin Smart Search_x.x.x_x64-setup.exe` |
+| Windows | `joplin-smart-search_x86_64-windows.zip` |
 
 3. Run the app — see platform instructions below
 4. On first launch the embedding model downloads (~33 MB). After that the app works fully offline.
@@ -38,8 +38,8 @@ This project was developed with the assistance of AI coding tools. The full sour
 ### Linux — AppImage
 
 ```bash
-chmod +x "joplin-smart-search_x.x.x_amd64.AppImage"
-./"joplin-smart-search_x.x.x_amd64.AppImage"
+chmod +x joplin-smart-search_x.x.x_amd64.AppImage
+./joplin-smart-search_x.x.x_amd64.AppImage
 ```
 
 Double-clicking in your file manager also works on most distros.
@@ -62,9 +62,11 @@ chmod +x joplin-smart-search
 ./joplin-smart-search
 ```
 
+The app automatically registers itself in your application launcher and sets the correct taskbar icon on first run.
+
 ### Windows
 
-Run the `.exe` installer. No admin rights required — installs to your user profile.
+Extract `joplin-smart-search_x86_64-windows.zip` and run `joplin-smart-search.exe`. No installation required — works on Windows 10 and 11.
 
 **Windows SmartScreen warning?** Click **More info** → **Run anyway**. The warning appears because the app is not signed with a commercial code signing certificate.
 
@@ -81,7 +83,7 @@ sudo apt-get install libfuse2
 Or run without FUSE:
 
 ```bash
-APPIMAGE_EXTRACT_AND_RUN=1 ./"joplin-smart-search_x.x.x_amd64.AppImage"
+APPIMAGE_EXTRACT_AND_RUN=1 ./joplin-smart-search_x.x.x_amd64.AppImage
 ```
 
 ### AppImage: "Could not create default EGL display" (Arch / CachyOS)
@@ -100,26 +102,6 @@ The database is typically at:
 
 The embedding model (~33 MB) is downloaded from HuggingFace on first launch. Make sure you have an internet connection for this one-time step. After that the app works fully offline.
 
-### Taskbar icon shows generic icon (Linux, tar.gz)
-
-Without a `.desktop` entry the taskbar may show a generic icon. To fix it, create one pointing to wherever you placed the binary:
-
-```bash
-mkdir -p ~/.local/share/applications
-cat > ~/.local/share/applications/joplin-smart-search.desktop << 'EOF'
-[Desktop Entry]
-Name=Joplin Smart Search
-Exec=/home/YOUR_USER/path/to/joplin-smart-search
-Icon=applications-other
-Type=Application
-Categories=Utility;
-StartupWMClass=joplin-smart-search
-EOF
-update-desktop-database ~/.local/share/applications
-```
-
-Replace the `Exec=` path with the actual location of the binary.
-
 ## ☕ Support Development
 
 If Joplin Smart Search is useful to you, consider supporting its development. Donations help fund a code signing certificate to remove the Windows SmartScreen warning and make the app more trusted for everyone.
@@ -134,4 +116,4 @@ If Joplin Smart Search is useful to you, consider supporting its development. Do
 - Tailwind CSS 4 — styling
 - [fastembed](https://github.com/Anush008/fastembed-rs) — ONNX embedding inference, no Python, no GPU
 - [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) — embedding model
-- HNSW vector index — fast approximate nearest-neighbour search
+- [ruvector](https://github.com/ruvnet/ruvector) — HNSW vector index, the core of the search engine
