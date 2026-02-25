@@ -44,13 +44,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
+            libayatana-appindicator3-dev \
             librsvg2-dev \
             patchelf \
             file \
             libssl-dev \
-            pkg-config \
-            libayatana-appindicator3-dev
+            pkg-config
 
       # On a tag push: build + create a draft GitHub Release with the AppImage attached.
       # On a manual run: build only, upload AppImage as a workflow artifact (no release).
