@@ -1,42 +1,25 @@
 name: Release
 
-# Trigger: push a tag like v0.1.0
-# You can also trigger manually with workflow_dispatch for testing.
+# Trigger: push a tag like v0.1.0, OR run manually from the Actions tab.
+# Manual runs (workflow_dispatch) build the AppImage but do NOT create a release.
 on:
   push:
     tags:
       - "v*"
   workflow_dispatch:
 
-# Only one release job runs at a time (avoid race on the same tag).
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # ── Linux AppImage ──────────────────────────────────────────────
-          - platform: ubuntu-22.04
-            args: --target x86_64-unknown-linux-gnu --bundles appimage
-            rust_target: x86_64-unknown-linux-gnu
-
-          # ── Windows NSIS installer ──────────────────────────────────────
-          - platform: windows-latest
-            args: --target x86_64-pc-windows-msvc --bundles nsis
-            rust_target: x86_64-pc-windows-msvc
-
-    runs-on: ${{ matrix.platform }}
+  build-linux:
+    runs-on: ubuntu-22.04
 
     steps:
-      # ── Checkout ──────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── Node.js (for Vite / tsc frontend build) ───────────────────────
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -46,25 +29,17 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      # ── Rust toolchain ─────────────────────────────────────────────────
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.rust_target }}
+          targets: x86_64-unknown-linux-gnu
 
-      # Cache Cargo registry + compiled deps across runs.
-      # The cache key includes the OS and Cargo.lock hash so it
-      # invalidates correctly when dependencies change.
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: "src-tauri -> target"
-          key: ${{ matrix.platform }}-cargo
 
-      # ── Linux system libraries (WebKit2GTK, AppImage tools) ───────────
-      # Not needed on Windows runner.
       - name: Install Linux build dependencies
-        if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -75,26 +50,37 @@ jobs:
             file \
             libssl-dev \
             pkg-config \
-            libxdo-dev \
             libayatana-appindicator3-dev
 
-      # ── Build via tauri-action ─────────────────────────────────────────
-      # tauri-apps/tauri-action@v0 handles:
-      #   1. Running beforeBuildCommand (npm run build → tsc + vite)
-      #   2. cargo build --release --target <target>
-      #   3. tauri bundle (calls makensis.exe on Windows, appimagetool on Linux)
-      #   4. Uploading artifacts to the GitHub Release (when triggered by a tag)
-      - name: Build and bundle Tauri app
+      # On a tag push: build + create a draft GitHub Release with the AppImage attached.
+      # On a manual run: build only, upload AppImage as a workflow artifact (no release).
+      - name: Build and release (tag push)
+        if: startsWith(github.ref, 'refs/tags/')
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Linux: avoid FUSE2 requirement when appimagetool runs AppImages
-          # internally during the bundle step on the CI runner.
           APPIMAGE_EXTRACT_AND_RUN: "1"
         with:
           tagName: ${{ github.ref_name }}
           releaseName: "Joplin Smart Search ${{ github.ref_name }}"
-          releaseBody: "See the assets below for the installer and AppImage."
+          releaseBody: "See the assets below to download the AppImage."
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.args }}
+          args: --target x86_64-unknown-linux-gnu --bundles appimage
+
+      - name: Build only (manual run)
+        if: github.event_name == 'workflow_dispatch'
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+        with:
+          args: --target x86_64-unknown-linux-gnu --bundles appimage
+
+      - name: Upload AppImage as artifact (manual run)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: joplin-smart-search-appimage
+          path: src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
+          retention-days: 7
