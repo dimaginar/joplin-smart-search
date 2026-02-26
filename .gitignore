@@ -14,6 +14,10 @@
 # Claude Code local settings (machine-specific hook paths, local state)
 /.claude/
 /CLAUDE.md
+/.mcp.json
+
+# Local dev helpers (machine-specific)
+/install-desktop.sh
 
 # Claude Flow / swarm working state (not project source)
 /.claude-flow/
