@@ -78,7 +78,8 @@ jobs:
         run: |
           DIR="src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage"
           OLD=$(ls "$DIR"/*.AppImage | head -1)
-          NEW="$DIR/$(basename "$OLD" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
+          BASE=$(basename "$OLD" .AppImage)
+          NEW="$DIR/$(echo "$BASE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-').AppImage"
           [ "$OLD" != "$NEW" ] && mv "$OLD" "$NEW"
           # Delete the wrong-named asset tauri-action already uploaded
           gh api "repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" \
@@ -100,7 +101,8 @@ jobs:
         run: |
           DIR="src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage"
           OLD=$(ls "$DIR"/*.AppImage | head -1)
-          NEW="$DIR/$(basename "$OLD" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')"
+          BASE=$(basename "$OLD" .AppImage)
+          NEW="$DIR/$(echo "$BASE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-').AppImage"
           [ "$OLD" != "$NEW" ] && mv "$OLD" "$NEW"
 
       - name: Upload AppImage as artifact (manual run)
