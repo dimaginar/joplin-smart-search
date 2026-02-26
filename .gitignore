@@ -13,6 +13,7 @@
 
 # Claude Code local settings (machine-specific hook paths, local state)
 /.claude/
+/CLAUDE.md
 
 # Claude Flow / swarm working state (not project source)
 /.claude-flow/
