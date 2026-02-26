@@ -69,7 +69,7 @@ jobs:
           releaseName: "Joplin Smart Search ${{ github.ref_name }}"
           releaseBody: "**Linux (Ubuntu, Fedora, etc.):** download the `.AppImage`.\n**Linux (Arch, CachyOS, Manjaro):** download `joplin-smart-search_x86_64-linux.tar.gz` — uses your system webkit2gtk.\n**Windows:** download the `.exe` installer."
           releaseDraft: true
-          prerelease: false
+          prerelease: true
           args: --target x86_64-unknown-linux-gnu --bundles appimage
 
       # tauri-action uses productName verbatim in the filename ("Joplin Smart Search_…").
@@ -87,7 +87,7 @@ jobs:
           # Delete the wrong-named asset tauri-action already uploaded.
           # Note: /releases/tags/{tag} returns 404 for draft releases; gh release view handles drafts correctly.
           gh release view "${{ github.ref_name }}" --json assets \
-            --jq '.assets[] | select(.name | test(" ")) | .id' \
+            --jq '.assets[] | select(.name | test("[A-Z]")) | .id' \
           | xargs -r -I{} gh api --method DELETE "repos/${{ github.repository }}/releases/assets/{}"
           gh release upload "${{ github.ref_name }}" "$NEW" --clobber
 
