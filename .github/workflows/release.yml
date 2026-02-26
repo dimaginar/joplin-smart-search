@@ -84,8 +84,9 @@ jobs:
           BASE=$(basename "$OLD" .AppImage)
           NEW="$DIR/$(echo "$BASE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-').AppImage"
           [ "$OLD" != "$NEW" ] && mv "$OLD" "$NEW"
-          # Delete the wrong-named asset tauri-action already uploaded
-          gh api "repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" \
+          # Delete the wrong-named asset tauri-action already uploaded.
+          # Note: /releases/tags/{tag} returns 404 for draft releases; gh release view handles drafts correctly.
+          gh release view "${{ github.ref_name }}" --json assets \
             --jq '.assets[] | select(.name | test(" ")) | .id' \
           | xargs -r -I{} gh api --method DELETE "repos/${{ github.repository }}/releases/assets/{}"
           gh release upload "${{ github.ref_name }}" "$NEW" --clobber
