@@ -6,7 +6,7 @@ Built with Tauri 2 + Rust. Fully local and offline after first run. No cloud, no
 
 ## 🔍 How It Works
 
-- Notes are embedded using [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5), a small, fast ONNX model (~33 MB, downloaded once on first run)
+- Notes are embedded using [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5), a small, fast ONNX model (~130 MB, downloaded once on first run)
 - Embeddings are stored in a local [HNSW vector index](https://github.com/ruvnet/ruvector) on your machine (the core of the search engine)
 - New and edited notes are picked up automatically within ~15 seconds
 - Click a result to open the note directly in Joplin
@@ -31,7 +31,7 @@ This project was developed with the assistance of AI coding tools. The full sour
 | Windows | `joplin-smart-search.exe` |
 
 3. Run the app (see platform instructions below)
-4. On first launch the embedding model downloads (~33 MB). After that the app works fully offline.
+4. On first launch the embedding model downloads (~130 MB). After that the app works fully offline.
 
 ## 📦 Install & Run
 
@@ -100,7 +100,7 @@ The database is typically at:
 
 ### First run: model download fails
 
-The embedding model (~33 MB) is downloaded from HuggingFace on first launch. Make sure you have an internet connection for this one-time step. After that the app works fully offline.
+The embedding model (~130 MB) is downloaded from HuggingFace on first launch. Make sure you have an internet connection for this one-time step. After that the app works fully offline.
 
 ## ☕ Support Development
 
