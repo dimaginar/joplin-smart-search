@@ -6,7 +6,7 @@ Built with Tauri 2 + Rust. Fully local and offline after first run. No cloud, no
 
 ## 🔍 How It Works
 
-- Notes are embedded using [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5), a small, fast ONNX model (~130 MB, downloaded once on first run)
+- Notes are embedded using [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5), a lightweight, fast ONNX model (~130 MB, downloaded once on first run)
 - Embeddings are stored in a local [HNSW vector index](https://github.com/ruvnet/ruvector) on your machine (the core of the search engine)
 - New and edited notes are picked up automatically within ~15 seconds
 - Click a result to open the note directly in Joplin
